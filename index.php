@@ -1,8 +1,5 @@
 <?php 
 session_start();
-$_SESSION['test'] = 'retained';
-//$_SESSION['username'] = '';
-//$_SESSION['password'] = '';
  ?>
 <!DOCTYPE html>
 <html>

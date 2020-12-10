@@ -1,20 +1,19 @@
 <?php
 session_start();
-
-echo "post stuid " . $_POST['stuid'];
-echo "post password " . $_POST['stupass'];
-$stuid = $_POST['stuid'];
-$stupass = $_POST['stupass'];
-
-//$_SESSION['username'] = $_POST['stuid'];
-//$_SESSION['password'] = $_POST['stupass'];
-$_SESSION['username'] = $stuid;
-$_SESSION['password'] = $stupass;
-echo "session stuid " . $_SESSION['username'];
-echo "session password" . $_SESSION['password'];
-
+/*
+echo "post stuid: " . $_POST['stuid'];
+echo "</br>";
+echo "post password: " . $_POST['stupass'];
+echo "</br>";
+*/
+if(!isset($_SESSION['username'])){
+	$_SESSION['username'] = $_POST['stuid'];
+	$_SESSION['password'] = $_POST['stupass'];
+}
+//var_dump($_SESSION);
 if(isset($_POST["Logout"])){
         header("LOCATION:index.php");
+	session_destroy();
         return;
 }
 

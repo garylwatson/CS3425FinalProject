@@ -12,10 +12,18 @@ if(isset($_POST['action'])){
                         $dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
                         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-                        $stmt = $dbh->prepare("insert into answers(examName,questionNum,choiceNum,answer) 
-			values(:examname,:qnum,:choicenum,:choice)");
-                        $result = $stmt->execute(array(':examname'=>$_POST['examname'],':qnum'=>$_POST['qnum'],':choicenum'=>
-                        $_POST['choicenum'],':choice'=>$_POST['choice']));
+	                if(isset($_POST['correct'])){
+				$stmt = $dbh->prepare("insert into answers(examName,questionNum,choiceNum,answer,correct)
+                        	values(:examname,:qnum,:choicenum,:choice, :correct)");
+                        	$result = $stmt->execute(array(':examname'=>$_POST['examname'],
+				':qnum'=>$_POST['qnum'],':choicenum'=>$_POST['choicenum'],':choice'=>$_POST['choice'],
+				':correct'=>$_POST['correct']));
+			} else {
+                        	$stmt = $dbh->prepare("insert into answers(examName,questionNum,choiceNum,answer) 
+				values(:examname,:qnum,:choicenum,:choice)");
+                        	$result = $stmt->execute(array(':examname'=>$_POST['examname'],':qnum'=>$_POST['qnum'],
+				':choicenum'=>$_POST['choicenum'],':choice'=>$_POST['choice']));
+			}
 
                 } catch (PDOException $e) {
                         print "Error!" . $e->getMessage()."</br>";
@@ -38,6 +46,7 @@ Exam Name: <input type="text" name="examname"> </br>
 Question Number: <input type="text" name="qnum"> </br>
 Choice Number: <input type="text" name="choicenum"> </br>
 Choice: <input type="text" name="choice"> </br>
+<input type="radio" name="correct" value="1" /> Correct </input> </br>
 <input type="submit" name="action" value="Add Choice">
 <input type="submit" name="action" value="Done">
 </form>

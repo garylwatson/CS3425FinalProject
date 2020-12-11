@@ -1,25 +1,33 @@
 <?php
 session_start();
+?>
+<!DOCTYPE html>
+<html>
+<body>
+<?php
 if(isset($_POST['action'])){
         if($_POST['action'] == 'Done'){
                 header("LOCATION:studentlogin.php");
                 return;
 
         } else if($_POST['action'] == 'Submit Answers'){
-                try {
-                        $config = parse_ini_file("db.ini");
-                        $dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
-                        //$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                        //$stmt = $dbh->prepare("select password from student where id = :id");
-                        //$stmt->bindParam(':id', $_SESSION['username']);
-                        //$stmt->execute();
-
-                } catch (PDOException $e) {
-                        print "Error!" . $e->getMessage()."</br>";
-                        die();
-                }
-
+		var_dump($_POST);
+		/*
+		$choices = array();
+		for($i = 1; $i <= $_SESSION['numquestions']; $i = $i + 1){
+			$choices[$i] = $_POST[$i];
+		}
+		var_dump($choices);
+		echo "</br>";
+    		//var_dump($_SESSION['answerkey']);            
+		$answers = $_SESSION['answerkey'];
+		$_SESSION['answerkey'] = ''; //reset session variable in case student wants to retake exam
+		foreach($answers as $key=>$value){
+			echo 'Question: '.$key.' Answer: '.$value.'</br>';
+		}
+		*/
         } else if($_POST['action'] == 'Take Exam'){
+		echo '<form method="post" action="checkscores.php">';
         	$examName = $_POST['examselection'];
 		try{
         		$config = parse_ini_file("db.ini");
@@ -29,8 +37,11 @@ if(isset($_POST['action'])){
         		$stmt->execute(['examname'=>$examName]);
         		$data = $stmt->fetchAll();
 			//var_dump($data);
-			
+
+			$anserKey = array();
+			$_SESSION['numquestions'] = 1;
         		foreach($data as $row){
+				$_SESSION['numquestions'] = $_SESSION['numquestions'] + 1; //keep track of number of questions
 				$questionNum = $row['questionNum'];
                 		echo $row['questionNum'].". ".$row['question']."</br>";
 				
@@ -44,25 +55,25 @@ if(isset($_POST['action'])){
 					$answer = $row2['answer'];
 					echo '<input type="radio" name = "'.$questionNum.'"'.'value = "'.$choiceNum.'"'.
 					'/>'.$answer.'</input> </br>';
+					
+					//log the correct choice for each question
+					if($row2['correct'] == 1){
+						$answerKey[$questionNum] = $choiceNum;	
+						}
 				}
         		}
-			/*	
-			foreach($dbh->query("SELECT questionNum, question, points from questions 
-			where examName = 'Exam1'") as $row){
-                 		echo $row[0].". ".$row[1]."</br>";
-         		}*/	
+			$_SESSION['answerkey'] = $answerKey;
+	
 		} catch (PDOException $e) {
                          print "Error!" . $e->getMessage()."</br>";
                          die();
-                }	
+                }
+		echo '<input type="submit" name="submit" value="Check Score">';
+		echo '</form>';	
 	}	
 }
 
 ?>
-
-<!DOCTYPE html>
-<html>
-<body>
 <h1> Take Exam</h1>
 <form form action="takeexam.php" method="post">
 What exam would you like to take? </br>
@@ -76,7 +87,6 @@ What exam would you like to take? </br>
 	}
         echo "</select>";
 ?>
-        <input type="submit" name="action" value="Submit Answers">
         <input type="submit" name="action" value="Done">
 	<input type="submit" name="action" value="Take Exam">
 </form>

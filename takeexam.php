@@ -10,25 +10,10 @@ if(isset($_POST['action'])){
                 header("LOCATION:studentlogin.php");
                 return;
 
-        } else if($_POST['action'] == 'Submit Answers'){
-		var_dump($_POST);
-		/*
-		$choices = array();
-		for($i = 1; $i <= $_SESSION['numquestions']; $i = $i + 1){
-			$choices[$i] = $_POST[$i];
-		}
-		var_dump($choices);
-		echo "</br>";
-    		//var_dump($_SESSION['answerkey']);            
-		$answers = $_SESSION['answerkey'];
-		$_SESSION['answerkey'] = ''; //reset session variable in case student wants to retake exam
-		foreach($answers as $key=>$value){
-			echo 'Question: '.$key.' Answer: '.$value.'</br>';
-		}
-		*/
         } else if($_POST['action'] == 'Take Exam'){
 		echo '<form method="post" action="checkscores.php">';
         	$examName = $_POST['examselection'];
+		$_SESSION['exam'] = $examName; //store what exam we're taking
 		try{
         		$config = parse_ini_file("db.ini");
         		$dbh = new PDO($config['dsn'], $config["username"], $config["password"]);

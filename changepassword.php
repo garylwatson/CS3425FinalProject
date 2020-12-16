@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+require './password_compat/lib/password.php';
+
 if(isset($_POST['action'])){
         if($_POST['action'] == 'Done'){
                 header("LOCATION:studentlogin.php");
@@ -19,15 +21,17 @@ if(isset($_POST['action'])){
 			$stmt->bindParam(':id', $_SESSION['username']);
 			$stmt->execute();
 			$oldpass = $stmt->fetchColumn();
+			//var_dump($userDefinedPassword);
 
 			//compare inputted old password to database stored old password
 			$userDefinedOldPass = $_POST['oldpass'];
 			$userDefinedNewPass = $_POST['newpass'];
-			
+			$hashedUserDefinedNewPass = password_hash($userDefinedNewPass,PASSWORD_BCRYPT, array('cost' => 12));
+
 			//if passwords match
-			if($oldpass == $userDefinedOldPass){
+			if(password_verify($userDefinedOldPass, $oldpass)){
                         	$stmt2 = $dbh->prepare("UPDATE student SET password = :newpass WHERE id = :id");
-                        	$result = $stmt2->execute(array(':newpass'=>$userDefinedNewPass,':id'=>$_SESSION['username']));
+                        	$result = $stmt2->execute(array(':newpass'=>$hashedUserDefinedNewPass,':id'=>$_SESSION['username']));
 			} else {
 				echo "Wrong old password, please try again!";
 			}
@@ -51,8 +55,8 @@ if(isset($_POST['action'])){
 
 <body>
 <form form action="changepassword.php" method="post">
-Old Password: <input type="text" name="oldpass"> </br>
-New Password: <input type="text" name="newpass"> </br>
+Old Password: <input type="password" name="oldpass"> </br>
+New Password: <input type="password" name="newpass"> </br>
 <input type="submit" name="action" value="Change Password">
 <input type="submit" name="action" value="Done">
 </form>

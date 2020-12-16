@@ -1,6 +1,8 @@
 <?php 
 session_start();
 
+require './password_compat/lib/password.php';
+
 if(isset($_POST['login'])){
 	//can't login as two people at the same time
 	if($_POST['teachuser'] != '' and $_POST['stuid'] != ''){
@@ -10,7 +12,6 @@ if(isset($_POST['login'])){
 		//if username and password for teacher match predefined account
 		if ($_POST['teachuser'] == 'user' and $_POST['teachpass'] == 'password'){
 			echo "You're logged in!";
-			sleep(1);
 			header("LOCATION:teacherlogin.php");
 		} else {
 			echo "Wrong username or password, please try again!";
@@ -35,11 +36,13 @@ if(isset($_POST['login'])){
 			$databaseDefinedPassword = $stmt->fetchColumn();
 			
 			$dbh->commit();
+		
+			//encrypt input
+			$hashedUserDefinedPassword = password_hash($userDefinedPassword, PASSWORD_BCRYPT, array('cost' => 12));
 
 			//if the user put in the right password
-			if($userDefinedPassword == $databaseDefinedPassword){
+			if(password_verify($userDefinedPassword, $databaseDefinedPassword)){
 				echo "You're logged in!";
-				sleep(1);
 				header("LOCATION:studentlogin.php");
 			} else {
 				echo "Wrong username or password, please try again!";

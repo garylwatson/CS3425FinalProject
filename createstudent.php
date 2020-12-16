@@ -1,5 +1,6 @@
 <?php
 session_start();
+require './password_compat/lib/password.php';
 
 if(isset($_POST['action'])){
 	if($_POST['action'] == 'Done'){
@@ -14,10 +15,15 @@ if(isset($_POST['action'])){
 				
 
 			$dbh->beginTransaction();
+			
+			//hash password
+			$defaultPassword = password_hash("default", PASSWORD_BCRYPT, array('cost' => 12));
 
-			$stmt = $dbh->prepare("INSERT INTO student(id,name,major) VALUES(:stuid,:stuname,:stumaj)");
+			//insert password into database
+			$stmt = $dbh->prepare("INSERT INTO student(id,name,major,password) VALUES(:stuid,:stuname,:stumaj,
+			:password)");
 			$result = $stmt->execute(array(':stuid'=>$_POST['stuid'],':stuname'=>$_POST['stuname'],':stumaj'=>
-			$_POST['stumaj']));
+			$_POST['stumaj'],'password'=>$defaultPassword));
 
 			$dbh->commit();
 

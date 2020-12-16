@@ -16,27 +16,38 @@ if(isset($_POST['login'])){
 			echo "Wrong username or password, please try again!";
 		}
 	//we have to dynamically check student login
-	} else if(isset($_POST['stuid'])){
+	} else if($_POST['stuid'] != ''){
 		$_SESSION['username'] = $_POST['stuid'];
 		$userDefinedPassword = $_POST['stupass'];
+		try{
+			$config = parse_ini_file("db.ini");
+                	$dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
+			$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			
+			//problems could technically arise in SELECT statements
+			//with highly concurrent databases so we still use transactions
+			$dbh->beginTransaction();
+	
+			//get password from database
+			$stmt = $dbh->prepare("SELECT password FROM student WHERE id = :id");
+			$stmt->execute(['id'=>$_SESSION['username']]);
 
-		$config = parse_ini_file("db.ini");
-                $dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
-		$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$databaseDefinedPassword = $stmt->fetchColumn();
+			
+			$dbh->commit();
 
-		//get password from database
-		$stmt = $dbh->prepare("SELECT password FROM student WHERE id = :id");
-		$stmt->execute(['id'=>$_SESSION['username']]);
-
-		$databaseDefinedPassword = $stmt->fetchColumn();
-		
-		//if the user put in the right password
-		if($userDefinedPassword == $databaseDefinedPassword){
-			echo "You're logged in!";
-			sleep(1);
-			header("LOCATION:studentlogin.php");
-		} else {
-			echo "Student: Wrong username or password, please try again!";
+			//if the user put in the right password
+			if($userDefinedPassword == $databaseDefinedPassword){
+				echo "You're logged in!";
+				sleep(1);
+				header("LOCATION:studentlogin.php");
+			} else {
+				echo "Wrong username or password, please try again!";
+			}
+		} catch (PDOException $e){
+			print "Error!" . $e->getMessage()."</br>";
+                        $dbh->rollback();
+                        die();
 		}	
 	}
 }		

@@ -11,13 +11,19 @@ if(isset($_POST['action'])){
                         $config = parse_ini_file("db.ini");
                         $dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
                         $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-                        $stmt = $dbh->prepare("insert into exam(name,points) values(:examname,:points)");
+				
+			$dbh->beginTransaction();
+			
+			//Push new exam to database
+                        $stmt = $dbh->prepare("INSERT INTO exam(name,points) VALUES(:examname,:points)");
                         $result = $stmt->execute(array(':examname'=>$_POST['examname'],':points'=>$_POST['points']));
+
+			$dbh->commit();
 
                 } catch (PDOException $e) {
                         print "Error!" . $e->getMessage()."</br>";
-                        die();
+                        $dbh->rollback();
+			die();
                 }
         }
 }

@@ -11,6 +11,8 @@ if(isset($_POST['action'])){
 			$config = parse_ini_file("db.ini");
 			$dbh = new PDO($config['dsn'], $config['username'], $config['password']);
 			$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			
+			$dbh->beginTransaction();
 
 			echo "<table border='1'>";
 			echo "<TR>";
@@ -19,31 +21,59 @@ if(isset($_POST['action'])){
 			echo "<TH> Score </TH>";
 			echo "</TR>";
 
-			foreach( $dbh->query("SELECT examName, id, score FROM score") as $row ) {
+			$examName = $_POST['examselection'];
+	
+			$stmt = $dbh->prepare("SELECT examName, id, score FROM score WHERE examName = :examname");
+			$stmt->execute(['examname'=>$examName]);
+			$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			foreach($results as $row) {
 				echo "<TR>";
-				echo "<TD>".$row[0]."</TD>";
-				echo "<TD>".$row[1]."</TD>";
-				echo "<TD>".$row[2]."</TD>";
+				echo "<TD>".$row['examName']."</TD>";
+				echo "<TD>".$row['id']."</TD>";
+				echo "<TD>".$row['score']."</TD>";
 				echo "</TR>";
 			}
 			echo "</table>";
+
+			$dbh->commit();
+
                 } catch (PDOException $e) {
                         print "Error!" . $e->getMessage()."</br>";
-                        die();
+                        $dbh->rollback();
+			die();
                 }
         }
 }
 ?>
 
 <!DOCTYPE html>
-<html>
-<head>
-<title> Show grades</title>
-</head>
-
-<body>
-<h1> Show grades </h1>
+<h1> Check Scores</h1>
 <form form action="showgrades.php" method="post">
-<input type="submit" name="action" value="Show Grades">
-<input type="submit" name="action" value="Done">
+Which exam's scores would you like to see? </br>
+<?php
+try{
+        $config = parse_ini_file("db.ini");
+        $dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+	$dbh->beginTransaction();
+
+        echo '<select name="examselection">';
+        foreach($dbh->query("SELECT name FROM exam") as $row){
+                echo "<option>".$row[0]."</option>";
+        }
+        echo "</select>";
+
+	$dbh->commit();
+
+} catch(PDOException $e) {
+	print "Error!" . $e->getMessage()."</br>";
+ 	$dbh->rollback();
+ 	die();
+}
+?>
+        <input type="submit" name="action" value="Done">
+        <input type="submit" name="action" value="Show Grades">
 </form>
+</body>
+</html>

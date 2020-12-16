@@ -1,11 +1,13 @@
 <?php 
 session_start();
+//$_SESSION['numchoices'] = 1;:
 if(isset($_POST["Logout"])){
         header("LOCATION:index.php");
         return;
 }
 
-if(isset($_POST["teachaction"])){
+if(isset($_POST["teachaction"])){ 
+	//Go to different page depending on selection
 	if($_POST["teachaction"] == "Create student") {
 		header("LOCATION:createstudent.php");
 		return;	

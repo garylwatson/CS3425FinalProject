@@ -11,13 +11,19 @@ if(isset($_POST['action'])){
 			$config = parse_ini_file("db.ini");
 			$dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
 			$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				
 
-			$stmt = $dbh->prepare("insert into student(id,name,major) values(:stuid,:stuname,:stumaj)");
+			$dbh->beginTransaction();
+
+			$stmt = $dbh->prepare("INSERT INTO student(id,name,major) VALUES(:stuid,:stuname,:stumaj)");
 			$result = $stmt->execute(array(':stuid'=>$_POST['stuid'],':stuname'=>$_POST['stuname'],':stumaj'=>
 			$_POST['stumaj']));
 
+			$dbh->commit();
+
 		} catch (PDOException $e) {
 			print "Error!" . $e->getMessage()."</br>";
+			$dbh->rollback();
 			die();
 		}
 	}

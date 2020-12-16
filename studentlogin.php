@@ -1,16 +1,10 @@
 <?php
 session_start();
-/*
-echo "post stuid: " . $_POST['stuid'];
-echo "</br>";
-echo "post password: " . $_POST['stupass'];
-echo "</br>";
-*/
+
 if(!isset($_SESSION['username'])){
 	$_SESSION['username'] = $_POST['stuid'];
 	$_SESSION['password'] = $_POST['stupass'];
 }
-//var_dump($_SESSION);
 if(isset($_POST["Logout"])){
         header("LOCATION:index.php");
 	session_destroy();
@@ -34,6 +28,31 @@ if(isset($_POST["studentaction"])){
 <body>
 <h1> Student Utilities</h1>
 <form form action="studentlogin.php" method="post">
+<?php
+
+try{
+        $config = parse_ini_file("db.ini");
+        $dbh = new PDO($config['dsn'], $config["username"], $config["password"]);
+        $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $dbh->beginTransaction();
+
+        //retrieve name using student id
+        $stmt = $dbh->prepare("SELECT name FROM student WHERE id = :id");
+        $stmt->bindParam(':id', $_SESSION['username']);
+        $stmt->execute();
+        $name = $stmt->fetchColumn();
+
+        $dbh->commit();
+
+} catch (PDOException $e){
+        print "Error!" . $e->getMessage()."</br>";
+        $dbh->rollback();
+        die();
+}
+
+echo "<h3> Hello, ".$name."!</h3>";
+?>
 What would you like to do?:
         <select name="studentaction">
                 <option> Change password </option>
